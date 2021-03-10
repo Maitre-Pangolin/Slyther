@@ -1,8 +1,13 @@
 export default class Snake {
-  constructor(keyleft, keyright, color, canvas) {
+  constructor(keyleft, keyright, color, name, canvas) {
+    this.name = name;
     this.keyleft = keyleft;
     this.keyright = keyright;
     this.color = color;
+    this.setSnake(canvas);
+  }
+
+  setSnake(canvas) {
     this.x = (canvas.width / 4) * (1 + Math.random());
     this.y = (canvas.height / 4) * (1 + Math.random());
     this.radius = 3;
@@ -13,9 +18,10 @@ export default class Snake {
     this.isTurningRight = false;
     this.isAlive = true;
     this.stepCount = 0;
-    this.stepToHole = 2 * 60 * (1 + 1 * Math.random());
+    this.timeBetweenHole = 2 * 60 * (1 + 2 * Math.random());
     this.isTrailing = true;
     this.trail = [];
+    this.addToTrail();
   }
 
   static circleIntersection(
@@ -50,12 +56,12 @@ export default class Snake {
 
   checkHole() {
     this.stepCount++;
-    if (this.isTrailing && this.stepCount > this.stepToHole)
+    if (this.isTrailing && this.stepCount > this.timeBetweenHole)
       this.isTrailing = false;
-    if (!this.isTrailing && this.stepCount > this.stepToHole + 0.3 * 60) {
+    if (!this.isTrailing && this.stepCount > this.timeBetweenHole + 0.3 * 60) {
       this.isTrailing = true;
       this.stepCount = 0;
-      this.stepToHole = 2 * 60 * (1 + 1 * Math.random());
+      this.timeBetweenHole = 2 * 60 * (1 + 1 * Math.random());
     }
   }
 
@@ -97,14 +103,6 @@ export default class Snake {
           this.isAlive = false;
       }
     }
-  }
-
-  reset(canvas) {
-    this.x = (canvas.width / 4) * (1 + Math.random());
-    this.y = (canvas.height / 4) * (1 + Math.random());
-    this.dir = 0;
-    this.isAlive = true;
-    this.trail = [];
   }
 
   run(snakes, canvas) {

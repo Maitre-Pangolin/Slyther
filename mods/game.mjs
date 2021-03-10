@@ -32,14 +32,14 @@ export default class Game {
   ) {
     let snakes = [];
     for (let { name, leftkey, rightkey, color } of playersProps) {
-      snakes.push(new Snake(leftkey, rightkey, color, this.canvas));
+      snakes.push(new Snake(leftkey, rightkey, color, name, this.canvas));
     }
     return snakes;
   }
 
   clickHandler() {
     for (let snake of this.snakes) {
-      snake.reset(this.canvas);
+      snake.setSnake(this.canvas);
     }
     this.setBackground();
   }
