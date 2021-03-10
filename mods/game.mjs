@@ -1,14 +1,16 @@
 import Snake from "./snake.mjs";
 
 export default class Game {
-  constructor(canvas) {
+  constructor(canvas, playersProps) {
     this.internalCanvas = document.createElement("canvas");
     this.internalCanvas.height = canvas.height;
     this.internalCanvas.width = canvas.width;
     this.canvas = canvas;
     this.ictx = this.internalCanvas.getContext("2d");
     this.ctx = canvas.getContext("2d");
-    this.snakes = [];
+    this.snakes = this.snakeInitialization(playersProps);
+    this.setBackground();
+    this.internalToVisual();
   }
 
   setBackground() {
@@ -17,26 +19,22 @@ export default class Game {
     this.ictx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  snakeInitialization() {
-    const player_colors = [
-      "#f94144",
-      "#f3722c",
-      "#f8961e",
-      "#f9c74f",
-      "#90be6d",
-      "#43aa8b",
-      "#577590",
-    ];
-
-    this.snakes = [
-      new Snake(
-        "ArrowLeft",
-        "ArrowDown",
-        player_colors[Math.floor(Math.random() * player_colors.length)],
-        this.canvas
-      ),
-      new Snake("q", "w", "#f94144", this.canvas),
-    ];
+  snakeInitialization(
+    playersProps = [
+      {
+        name: "Borus",
+        leftkey: "ArrowLeft",
+        rightkey: "ArrowDown",
+        color: "#90be6d",
+      },
+      { name: "Janos", leftkey: "q", rightkey: "w", color: "#f94144" },
+    ]
+  ) {
+    let snakes = [];
+    for (let { name, leftkey, rightkey, color } of playersProps) {
+      snakes.push(new Snake(leftkey, rightkey, color, this.canvas));
+    }
+    return snakes;
   }
 
   clickHandler() {

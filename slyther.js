@@ -5,10 +5,6 @@ const ctx = canvas.getContext("2d");
 
 let game = new Game(canvas);
 
-game.snakeInitialization();
-game.setBackground();
-game.internalToVisual();
-
 document.addEventListener("keydown", (e) => game.keyDownHandler(e), false);
 document.addEventListener("keyup", (e) => game.keyUpHandler(e), false);
 canvas.addEventListener("click", () => game.clickHandler(), false);
