@@ -74,4 +74,12 @@ export default class Game {
       snake.drawToVisual(this.ctx);
     }
   }
+
+  runGame(timeStamp) {
+    this.runRound();
+    /*fps = Math.round(1000 / (timeStamp - prevTime));
+    prevTime = timeStamp;
+    ctx.fillText(`FPS : ${fps}`, 10, 10);*/
+    window.requestAnimationFrame((timeStamp) => this.runGame(timeStamp));
+  }
 }
