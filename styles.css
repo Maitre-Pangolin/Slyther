@@ -1,8 +1,37 @@
 #myCanvas {
-  margin: auto;
+  border: #f1faee;
+  border-style: solid;
   display: block;
+  margin: auto;
+}
+
+main {
+  margin: auto;
+  padding-top: 1em;
+}
+
+main > div {
+  display: inline-block;
+  margin: auto;
+  vertical-align: top;
 }
 
 body {
   margin: auto;
+  background: #463f3a;
+}
+
+#score {
+  color: #f1faee;
+}
+
+#score div {
+  border-left: solid red 0.5em;
+  padding-left: 1em;
+  padding: 1em;
+  margin: 0.2em;
+}
+
+#thecanvas {
+  width: max-content;
 }

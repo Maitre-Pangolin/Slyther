@@ -6,6 +6,10 @@ export default class Snake {
     this.color = color;
     this.score = 0;
     this.setSnake(canvas);
+    this.scoreDiv = document.createElement("div");
+    this.scoreDiv.appendChild(document.createTextNode(this.name));
+    document.getElementById("score").appendChild(this.scoreDiv);
+    this.displayScore();
   }
 
   setSnake(canvas) {
@@ -24,6 +28,12 @@ export default class Snake {
     this.addToTrail();
   }
 
+  displayScore() {
+    this.scoreDiv.textContent = `${this.name} : ${this.score}`;
+    this.scoreDiv.style.color = this.color;
+    this.scoreDiv.style.borderLeftColor = this.color;
+  }
+
   static circleIntersection(
     { x: x1, y: y1, radius: r1 },
     { x: x2, y: y2, radius: r2 }
@@ -36,8 +46,6 @@ export default class Snake {
     game.aliveSnake--;
     game.deadThatFrame++;
     if (game.aliveSnake <= 1) game.isRoundEnded = true;
-    //console.log(this.name, "is dead");
-    //console.log("number of alive snake ", game.aliveSnake);
   }
 
   randomHole() {
@@ -159,7 +167,7 @@ export default class Snake {
   incrementScore(value) {
     if (this.isAlive) {
       this.score += value;
+      this.displayScore();
     }
-    console.log(`${this.name} score is ${this.score}`);
   }
 }
