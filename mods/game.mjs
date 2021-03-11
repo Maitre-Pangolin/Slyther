@@ -11,17 +11,20 @@ export default class Game {
     this.snakes = this.snakeInitialization(playersProps);
     this.previousTimeStamp = 0;
     this.roundReset();
+    this.deadThatFrame = 0;
+    this.isPaused = false;
   }
 
   snakeInitialization(
     playersProps = [
       {
-        name: "Borus",
+        name: "Black Mamba",
         leftkey: "ArrowLeft",
         rightkey: "ArrowDown",
         color: "#90be6d",
       },
-      { name: "Janos", leftkey: "q", rightkey: "w", color: "#f94144" },
+      { name: "Red Viper", leftkey: "q", rightkey: "w", color: "#f94144" },
+      { name: "Rattle Snake", leftkey: "q", rightkey: "w", color: "#f3722c" },
     ]
   ) {
     let snakes = [];
@@ -32,11 +35,12 @@ export default class Game {
   }
 
   roundReset() {
+    this.aliveSnake = this.snakes.length;
     for (let snake of this.snakes) {
       snake.setSnake(this.canvas);
     }
     this.startCountDown = 3 * 60;
-    this.endCountDown = 3 * 60;
+    this.endCountDown = 5 * 60;
     this.isRoundStarted = false;
     this.isRoundEnded = false;
     this.setBackground();
@@ -54,7 +58,8 @@ export default class Game {
   }
 
   clickHandler() {
-    this.roundReset();
+    //this.roundReset();
+    this.isPaused = !this.isPaused;
   }
 
   keyDownHandler(event) {
@@ -71,6 +76,13 @@ export default class Game {
     }
   }
 
+  scoreUpdate() {
+    if (this.deadThatFrame > 0 && this.aliveSnake > 0) {
+      this.snakes.forEach((snake) => snake.incrementScore(this.deadThatFrame));
+    }
+    this.deadThatFrame = 0;
+  }
+
   runRound() {
     if (!this.isRoundStarted) {
       this.startCountDown--;
@@ -79,20 +91,14 @@ export default class Game {
     if (this.isRoundEnded) this.endCountDown--;
     if (this.endCountDown < 0) this.roundReset();
 
-    for (let snake of this.snakes) {
-      snake.run(
-        this.snakes,
-        this.canvas.width,
-        this.canvas.height,
-        this.isRoundStarted
-      ); // Need to take live bonus array here
+    this.snakes.forEach((snake) => {
+      snake.run(this);
       snake.internalRender(this.ictx);
-    }
-    this.internalToVisual();
-    for (let snake of this.snakes) {
-      snake.render(this.ctx, this.isRoundStarted);
-    }
+    });
 
+    this.internalToVisual();
+    this.snakes.forEach((snake) => snake.render(this.ctx, this.isRoundStarted));
+    this.scoreUpdate();
     //bonus render
   }
 
@@ -103,7 +109,7 @@ export default class Game {
   }
 
   runGame(timeStamp) {
-    this.runRound();
+    if (!this.isPaused) this.runRound();
     this.debug(this.ctx, timeStamp);
     window.requestAnimationFrame((timeStamp) => this.runGame(timeStamp));
   }

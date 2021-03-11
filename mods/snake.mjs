@@ -4,6 +4,7 @@ export default class Snake {
     this.keyleft = keyleft;
     this.keyright = keyright;
     this.color = color;
+    this.score = 0;
     this.setSnake(canvas);
   }
 
@@ -28,6 +29,15 @@ export default class Snake {
     { x: x2, y: y2, radius: r2 }
   ) {
     return (x2 - x1) ** 2 + (y2 - y1) ** 2 < (r1 + r2) ** 2 ? true : false;
+  }
+
+  die(game) {
+    this.isAlive = false;
+    game.aliveSnake--;
+    game.deadThatFrame++;
+    if (game.aliveSnake <= 1) game.isRoundEnded = true;
+    //console.log(this.name, "is dead");
+    //console.log("number of alive snake ", game.aliveSnake);
   }
 
   randomHole() {
@@ -91,36 +101,38 @@ export default class Snake {
     this.y += Math.sin(this.dir) * this.velocity;
   }
 
-  wallCollide(X, Y) {
+  wallCollide(game) {
     if (
-      this.x + this.radius > X ||
+      this.x + this.radius > game.canvas.width ||
       this.x - this.radius < 0 ||
-      this.y + this.radius > Y ||
+      this.y + this.radius > game.canvas.height ||
       this.y - this.radius < 0
     )
-      this.isAlive = false;
+      this.die(game);
   }
 
-  snakeCollide(snakes) {
-    for (let snake of snakes) {
+  snakeCollide(game) {
+    for (let snake of game.snakes) {
       let beheadedTrail =
         this === snake ? snake.trail.slice(0, -20) : snake.trail.slice(0, -1);
       for (let dot of beheadedTrail) {
-        if (Snake.circleIntersection(dot, this.trail[this.trail.length - 1]))
-          this.isAlive = false;
+        if (Snake.circleIntersection(dot, this.trail[this.trail.length - 1])) {
+          this.die(game);
+          break;
+        }
       }
     }
   }
 
-  run(snakes, X, Y, isRoundStarted) {
+  run(game) {
     this.turn();
-    if (isRoundStarted) {
+    if (game.isRoundStarted) {
       this.updatePosition();
       if (this.isAlive) {
         this.addToTrail();
         this.checkHole();
-        this.wallCollide(X, Y);
-        this.snakeCollide(snakes);
+        this.wallCollide(game);
+        this.snakeCollide(game);
       }
     }
   }
@@ -142,5 +154,12 @@ export default class Snake {
     );
     ctx.closePath();
     ctx.stroke();
+  }
+
+  incrementScore(value) {
+    if (this.isAlive) {
+      this.score += value;
+    }
+    console.log(`${this.name} score is ${this.score}`);
   }
 }
