@@ -9,14 +9,8 @@ export default class Game {
     this.ictx = this.internalCanvas.getContext("2d");
     this.ctx = canvas.getContext("2d");
     this.snakes = this.snakeInitialization(playersProps);
-    this.setBackground();
-    this.internalToVisual();
-  }
-
-  setBackground() {
-    const backgroundColor = "#001427";
-    this.ictx.fillStyle = backgroundColor;
-    this.ictx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.previousTimeStamp = 0;
+    this.roundReset();
   }
 
   snakeInitialization(
@@ -37,11 +31,30 @@ export default class Game {
     return snakes;
   }
 
-  clickHandler() {
+  roundReset() {
     for (let snake of this.snakes) {
       snake.setSnake(this.canvas);
     }
+    this.startCountDown = 3 * 60;
+    this.endCountDown = 3 * 60;
+    this.isRoundStarted = false;
+    this.isRoundEnded = false;
     this.setBackground();
+  }
+
+  setBackground() {
+    const backgroundColor = "#001427";
+    this.ictx.fillStyle = backgroundColor;
+    this.ictx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.internalToVisual();
+  }
+
+  internalToVisual() {
+    this.ctx.drawImage(this.internalCanvas, 0, 0);
+  }
+
+  clickHandler() {
+    this.roundReset();
   }
 
   keyDownHandler(event) {
@@ -58,26 +71,40 @@ export default class Game {
     }
   }
 
-  internalToVisual() {
-    this.ctx.drawImage(this.internalCanvas, 0, 0);
-  }
-
   runRound() {
+    if (!this.isRoundStarted) {
+      this.startCountDown--;
+      if (this.startCountDown < 0) this.isRoundStarted = true;
+    }
+    if (this.isRoundEnded) this.endCountDown--;
+    if (this.endCountDown < 0) this.roundReset();
+
     for (let snake of this.snakes) {
-      snake.run(this.snakes, this.canvas);
-      snake.drawToInternal(this.ictx);
+      snake.run(
+        this.snakes,
+        this.canvas.width,
+        this.canvas.height,
+        this.isRoundStarted
+      ); // Need to take live bonus array here
+      snake.internalRender(this.ictx);
     }
     this.internalToVisual();
     for (let snake of this.snakes) {
-      snake.drawToVisual(this.ctx);
+      snake.render(this.ctx, this.isRoundStarted);
     }
+
+    //bonus render
+  }
+
+  debug(ctx, timeStamp) {
+    let fps = Math.round(1000 / (timeStamp - this.previousTimeStamp));
+    this.previousTimeStamp = timeStamp;
+    ctx.fillText(`FPS : ${fps}`, 10, 10);
   }
 
   runGame(timeStamp) {
     this.runRound();
-    /*fps = Math.round(1000 / (timeStamp - prevTime));
-    prevTime = timeStamp;
-    ctx.fillText(`FPS : ${fps}`, 10, 10);*/
+    this.debug(this.ctx, timeStamp);
     window.requestAnimationFrame((timeStamp) => this.runGame(timeStamp));
   }
 }
