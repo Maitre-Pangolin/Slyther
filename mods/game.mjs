@@ -1,4 +1,5 @@
 import Snake from "./snake.mjs";
+import BonusManager from "./bonus.mjs";
 
 export default class Game {
   constructor(canvas, playersProps) {
@@ -10,6 +11,7 @@ export default class Game {
     this.ctx = canvas.getContext("2d");
     this.snakes = this.snakeInitialization(playersProps);
     this.previousTimeStamp = 0;
+    this.bonusManager = new BonusManager();
     this.roundReset();
     this.isPaused = false;
   }
@@ -37,10 +39,13 @@ export default class Game {
     this.aliveSnake = this.snakes.length;
     this.snakes.forEach((snake) => snake.setSnake());
     this.startCountDown = 3 * 60;
-    this.endCountDown = 5 * 60;
+    this.endCountDown = 3 * 60;
     this.isRoundStarted = false;
     this.isRoundEnded = false;
     this.setBackground();
+    //this.bonus = [bonusFactory()];
+    this.bonusManager.resetBonus();
+    //clean bonus and stop clock
   }
 
   //  ############### COMMAND ###################
@@ -101,6 +106,12 @@ export default class Game {
       snake.displayHead(this.ctx);
     });
   }
+
+  /*displayBonus() {
+    this.bonus.forEach((bonus) => {
+      if (!bonus.isActivated) bonus.displayBonus(this.ctx);
+    });
+  }*/
 
   // #################### PHYSICS #####################
 
@@ -164,19 +175,47 @@ export default class Game {
           }
           if (!snake.isAlive) break;
         }
+        /*this.bonus.forEach((bonus) => {
+          if (!bonus.isActivated) {
+            if (circleIntersection(snakeDot, bonus.dot)) {
+              bonus.bonusCollided(snake);
+            }
+          }
+        });*/
+        this.bonusManager.liveBonus.forEach((bonus) => {
+          if (!bonus.isActivated) {
+            if (circleIntersection(snakeDot, bonus.dot)) {
+              this.bonusManager.collisionManager(bonus, snake, this.snakes);
+            }
+          }
+        });
       }
     });
     if (deathCounter) updateScore(deathCounter);
   }
+
+  /*bonusManager() {
+    this.bonus.forEach((bonus) => {
+      bonus.timer--;
+      if (!bonus.isActivated && bonus.affectedSnakes.length > 0)
+        bonus.bonusActivation();
+      if (bonus.timer <= 0 && bonus.isActivated) bonus.bonusDeletion();
+    });
+    this.bonus = this.bonus.filter((bonus) => bonus.timer > 0);
+  }*/
 
   // #################### RUNTIME #####################
 
   roundManager() {
     if (!this.isRoundStarted) {
       this.startCountDown--;
-      if (this.startCountDown < 0) this.isRoundStarted = true;
+      if (this.startCountDown < 0) {
+        this.isRoundStarted = true;
+        //Start Bonus clock
+        this.bonusManager.startBonusSystem();
+      }
     }
-    if (this.aliveSnake < 2) this.endCountDown--;
+    if (this.aliveSnake < 1) this.endCountDown--; // 1 for debug // two for normal
     if (this.endCountDown < 0) this.roundReset();
   }
 
@@ -193,7 +232,9 @@ export default class Game {
       this.roundManager();
       this.mover();
       this.collider();
+      this.bonusManager.bonusManagement();
       this.displaySnakes();
+      this.bonusManager.bonusDisplay(this.ctx);
       this.debug(this.ctx, timeStamp);
     }
     window.requestAnimationFrame((timeStamp) => this.runGame(timeStamp));
