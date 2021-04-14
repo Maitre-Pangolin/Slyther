@@ -13,10 +13,11 @@ let bonusSprite = document.createElement("img");
 bonusSprite.src = "../ressources/Bonus.png";
 const sizeSprite = 50;
 
-export default class BonusManager {
-  constructor() {
+export default class BonusHandler {
+  constructor(snakes) {
     this.liveBonus = [];
     this.isStarted = false;
+    this.snakes = snakes;
   }
 
   startBonusSystem() {
@@ -24,24 +25,34 @@ export default class BonusManager {
     this.setBonusGenerationTimer();
   }
 
-  resetBonus() {
-    //revert all bonus effect and reset array
-    this.liveBonus.forEach((bonus) => {
-      bonus.effectDeactivation();
-    });
+  resetBonusSystem() {
     this.liveBonus = [];
     this.isStarted = false;
   }
 
-  collisionManager(bonus, snake, snakes) {
-    if (bonus instanceof SelfBonus) bonus.bonusCollided(snake);
-    if (bonus instanceof Malus)
-      snakes.forEach((otherSnake) => {
-        if (otherSnake != snake) bonus.bonusCollided(otherSnake);
-        bonus.affectedSnakes = bonus.affectedSnakes.filter((e) => e != snake);
-      });
+  bonusCollisionHandler(intersectionCalculator) {
+    const aliveSnakes = this.snakes.filter((snake) => snake.isAlive);
+    const nonActivatedBonus = this.liveBonus.filter(
+      (bonus) => !bonus.isActivated
+    );
 
-    //if (bonus instanceof Bonus) console.log("I m a reg Bonus");
+    aliveSnakes.forEach((snake) => {
+      let snakeDot = { ...snake.pos, radius: snake.radius };
+      nonActivatedBonus.forEach((bonus) => {
+        if (intersectionCalculator(snakeDot, bonus.dot)) {
+          bonus.bonusCollided();
+          if (bonus instanceof SelfBonus) bonus.linkBonus(snake);
+          if (bonus instanceof Malus) {
+            aliveSnakes
+              .filter((s) => s != snake)
+              .forEach((s) => {
+                if (!bonus.affectedSnakes.includes(s))
+                  bonus.affectedSnakes.push(s);
+              });
+          }
+        }
+      });
+    });
   }
 
   setBonusGenerationTimer() {
@@ -54,7 +65,7 @@ export default class BonusManager {
     });
   }
 
-  bonusTimerUpdate() {
+  bonusGenerationTimerUpdate() {
     this.bonusGenerationTimer--;
     if (this.bonusGenerationTimer <= 0) {
       this.liveBonus.push(bonusFactory());
@@ -62,39 +73,42 @@ export default class BonusManager {
     }
   }
 
-  bonusCleaning() {
+  bonusDeletionCheck() {
+    this.liveBonus.forEach((bonus) => {
+      if (bonus.timer <= 0 && bonus.isActivated) bonus.effectDeactivation();
+    });
     this.liveBonus = this.liveBonus.filter((bonus) => bonus.timer > 0);
   }
 
-  bonusActivationStatus() {
+  bonusActivationCheck() {
     this.liveBonus.forEach((bonus) => {
       bonus.timer--;
-      if (!bonus.isActivated && bonus.affectedSnakes.length > 0)
-        bonus.bonusActivation();
-      if (bonus.timer <= 0 && bonus.isActivated) bonus.bonusDeletion();
+      if (!bonus.isActivated && bonus.wasCollided) bonus.bonusActivation();
     });
   }
 
   bonusManagement() {
     if (this.isStarted) {
-      this.bonusTimerUpdate();
-      this.bonusActivationStatus();
-      this.bonusCleaning();
+      this.bonusGenerationTimerUpdate();
+      this.bonusActivationCheck();
+      this.bonusDeletionCheck();
     }
   }
 }
+
+////////////////  BONUS FACTORY //////////////////
 
 function bonusFactory() {
   //Random bonus creation
   let picked = Math.floor(Math.random() * 2);
   let bonus = null;
   //if (picked === 0) bonus = new Bonus();
-  if (picked === 0) bonus = new Malus();
-  if (picked === 1) bonus = new SelfBonus();
+  if (picked === 0) bonus = new SelfBonus();
+  if (picked === 1) bonus = new Malus();
   return bonus;
 }
 
-//BONUS
+////////////////  BONUS //////////////////
 
 class Bonus {
   constructor() {
@@ -106,6 +120,7 @@ class Bonus {
     this.dot = { ...this.pos, radius: this.radius };
     this.timer = 6 * 60;
     this.bonusDuration = 10 * 60;
+    this.wasCollided = false;
     this.isActivated = false;
     this.spriteX = 0;
     this.spriteY = 0;
@@ -113,22 +128,30 @@ class Bonus {
     this.previousProperties = [];
   }
 
-  bonusCollided(snake) {
+  linkBonus(snake) {
     this.affectedSnakes.push(snake);
+  }
+
+  bonusCollided() {
+    this.wasCollided = true;
   }
 
   bonusActivation() {
     this.isActivated = true;
     this.timer = this.bonusDuration;
-    this.affectedSnakes.forEach(() => this.effectActivation());
-  }
-
-  bonusDeletion() {
-    this.affectedSnakes.forEach(() => this.effectDeactivation());
+    this.effectActivation();
   }
 
   effectActivation() {
-    this.affectedSnakes.forEach((snake) => this.effect(snake));
+    this.affectedSnakes.forEach((snake) => {
+      this.effect(snake);
+    });
+  }
+
+  effectDeactivation() {
+    this.affectedSnakes.forEach((snake) => {
+      this.reverseEffect(snake);
+    });
   }
 
   effect(snake) {
@@ -138,10 +161,6 @@ class Bonus {
 
   reverseEffect(snake) {
     snake.color = this.previousProperties.shift();
-  }
-
-  effectDeactivation() {
-    this.affectedSnakes.forEach((snake) => this.reverseEffect(snake));
   }
 
   displayBonus(ctx) {
@@ -170,10 +189,12 @@ class SelfBonus extends Bonus {
 
   effect(snake) {
     snake.radius *= 2;
+    snake.holeDuration *= 1.5;
   }
 
   reverseEffect(snake) {
     snake.radius /= 2;
+    snake.holeDuration /= 1.5;
   }
 }
 
@@ -186,9 +207,11 @@ class Malus extends Bonus {
 
   effect(snake) {
     snake.radius *= 2;
+    snake.holeDuration *= 2;
   }
 
   reverseEffect(snake) {
     snake.radius /= 2;
+    snake.holeDuration /= 2;
   }
 }
