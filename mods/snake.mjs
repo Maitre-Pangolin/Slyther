@@ -24,6 +24,7 @@ export default class Snake {
     this.isTurningLeft = false;
     this.isTurningRight = false;
     this.isAlive = true;
+    this.holeDuration = 0.3 * 60;
     this.setRandomHole();
     this.isTrailing = true;
     this.trail = [];
@@ -47,7 +48,10 @@ export default class Snake {
     this.stepCount++;
     if (this.isTrailing && this.stepCount > this.timeBetweenHole)
       this.isTrailing = false;
-    if (!this.isTrailing && this.stepCount > this.timeBetweenHole + 0.3 * 60) {
+    if (
+      !this.isTrailing &&
+      this.stepCount > this.timeBetweenHole + this.holeDuration
+    ) {
       this.isTrailing = true;
       this.setRandomHole();
     }
