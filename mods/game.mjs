@@ -84,7 +84,13 @@ export default class Game {
       this.snakes.forEach((snake) => {
         if (snake.isTrailing && snake.isAlive) {
           this.ictx.beginPath();
-          this.ictx.arc(snake.pos.x, snake.pos.y, snake.radius, 0, Math.PI * 2);
+          this.ictx.arc(
+            snake.dot.x,
+            snake.dot.y,
+            snake.dot.radius,
+            0,
+            Math.PI * 2
+          );
           this.ictx.fillStyle = snake.color;
           this.ictx.fill();
           this.ictx.closePath();
@@ -150,7 +156,6 @@ export default class Game {
     this.snakes.forEach((snake) => {
       if (snake.isAlive) {
         //wallCollide(snake);
-        let snakeDot = { ...snake.pos, radius: snake.radius };
         for (let otherSnake of this.snakes) {
           let dotToCollide =
             snake === otherSnake
@@ -158,7 +163,7 @@ export default class Game {
               : otherSnake.trail.concat(otherSnake.head);
 
           for (let dot of dotToCollide) {
-            if (circleIntersection(dot, snakeDot)) {
+            if (circleIntersection(dot, snake.dot)) {
               snake.isAlive = false;
               this.aliveSnake--;
               deathCounter++;

@@ -13,11 +13,11 @@ export default class Snake {
   }
 
   setSnake() {
-    this.pos = {
+    this.dot = {
       x: 100 + 700 * Math.random(), //NEED TO REMOVE HARD CODING GLOBAL VAR ?
-      y: 100 + 700 * Math.random(), //DOT REFACTORING
+      y: 100 + 700 * Math.random(),
+      radius: 3,
     };
-    this.radius = 3;
     this.velocity = 1.5;
     this.dir = Math.random() * Math.PI * 2;
     this.steerAngle = Math.PI / 40;
@@ -40,7 +40,7 @@ export default class Snake {
   addToBody() {
     if (this.isTrailing) {
       if (this.head.length > 20) this.trail.push(this.head.shift());
-      this.head.push({ ...this.pos, radius: this.radius });
+      this.head.push({ ...this.dot });
     }
   }
 
@@ -75,8 +75,8 @@ export default class Snake {
   }
 
   updatePosition() {
-    this.pos.x += Math.cos(this.dir) * this.velocity;
-    this.pos.y += Math.sin(this.dir) * this.velocity;
+    this.dot.x += Math.cos(this.dir) * this.velocity;
+    this.dot.y += Math.sin(this.dir) * this.velocity;
   }
 
   incrementScore(value) {
@@ -94,11 +94,11 @@ export default class Snake {
     ctx.lineWidth = 3;
     ctx.beginPath();
 
-    ctx.moveTo(this.pos.x, this.pos.y);
+    ctx.moveTo(this.dot.x, this.dot.y);
     let scale = 30;
     ctx.lineTo(
-      this.pos.x + scale * Math.cos(this.dir),
-      this.pos.y + scale * Math.sin(this.dir)
+      this.dot.x + scale * Math.cos(this.dir),
+      this.dot.y + scale * Math.sin(this.dir)
     );
     ctx.closePath();
     ctx.stroke();
@@ -106,12 +106,12 @@ export default class Snake {
 
   displayHead(ctx) {
     ctx.beginPath();
-    ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI * 2);
+    ctx.arc(this.dot.x, this.dot.y, this.dot.radius, 0, Math.PI * 2);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.closePath();
     ctx.beginPath();
-    ctx.arc(this.pos.x, this.pos.y, this.radius * 0.5, 0, Math.PI * 2);
+    ctx.arc(this.dot.x, this.dot.y, this.dot.radius * 0.5, 0, Math.PI * 2);
     ctx.fillStyle = "black";
     ctx.fill();
     ctx.closePath();

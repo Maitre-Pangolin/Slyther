@@ -37,9 +37,8 @@ export default class BonusHandler {
     );
 
     aliveSnakes.forEach((snake) => {
-      let snakeDot = { ...snake.pos, radius: snake.radius };
       nonActivatedBonus.forEach((bonus) => {
-        if (intersectionCalculator(snakeDot, bonus.dot)) {
+        if (intersectionCalculator(snake.dot, bonus.dot)) {
           bonus.bonusCollided();
           if (bonus instanceof SelfBonus) bonus.linkBonus(snake);
           if (bonus instanceof Malus) {
