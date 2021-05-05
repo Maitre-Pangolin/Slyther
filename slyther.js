@@ -1,6 +1,8 @@
 import Game from "./mods/game.mjs";
 
 const canvas = document.getElementById("myCanvas");
+canvas.style.width = "900px";
+canvas.style.height = "900px";
 const ctx = canvas.getContext("2d");
 
 let game = new Game(canvas);
