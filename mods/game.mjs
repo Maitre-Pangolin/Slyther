@@ -47,7 +47,7 @@ export default class Game {
   }
 
   //  ############### COMMAND ###################
-
+  // Could use  this.clickHandler = this.clickHandler.bind(this)
   clickHandler() {
     this.isPaused = !this.isPaused;
   }
@@ -183,7 +183,7 @@ export default class Game {
         this.bonusHandler.startBonusSystem();
       }
     }
-    if (this.aliveSnake < 1) this.endCountDown--; // 1 for debug // two for normal
+    if (this.aliveSnake < 2) this.endCountDown--; // 1 for debug // two for normal
     if (this.endCountDown < 0) this.roundReset();
   }
 

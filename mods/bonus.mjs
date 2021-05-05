@@ -100,18 +100,28 @@ export default class BonusHandler {
 
 function bonusFactory() {
   //Random bonus creation
-  let picked = Math.floor(Math.random() * 2);
-  let bonus = null;
-  //if (picked === 0) bonus = new Bonus();
-  if (picked === 0) bonus = new SelfBonus();
-  if (picked === 1) bonus = new Malus();
-  return bonus;
+  function randInt(max) {
+    return Math.floor(Math.random() * max) + 1;
+  }
+
+  let picked = randInt(2);
+  if (picked === 1) {
+    picked = randInt(2);
+    if (picked === 1) return new SizeUpSelfBonus();
+    if (picked === 2) return new SpeedUpSelfBonus();
+  }
+  if (picked === 2) {
+    picked = randInt(2);
+    if (picked === 1) return new SizeUpMalus();
+    if (picked === 2) return new SpeedUpMalus();
+  }
+  return;
 }
 
 ////////////////  BONUS //////////////////
 
 class Bonus {
-  constructor() {
+  constructor(spriteX = 0, spriteY = 0) {
     this.pos = {
       x: 100 + 700 * Math.random(), //NEED TO REMOVE HARD CODING GLOBAL VAR ?
       y: 100 + 700 * Math.random(),
@@ -122,8 +132,8 @@ class Bonus {
     this.bonusDuration = 10 * 60;
     this.wasCollided = false;
     this.isActivated = false;
-    this.spriteX = 0;
-    this.spriteY = 0;
+    this.spriteX = spriteX;
+    this.spriteY = spriteY;
     this.affectedSnakes = [];
     this.previousProperties = [];
   }
@@ -181,37 +191,74 @@ class Bonus {
 class GlobalBonus extends Bonus {}
 
 class SelfBonus extends Bonus {
-  constructor() {
-    super();
-    this.spriteX = 0;
-    this.spriteY = 3;
-  }
-
-  effect(snake) {
-    snake.radius *= 2;
-    snake.holeDuration *= 1.5;
-  }
-
-  reverseEffect(snake) {
-    snake.radius /= 2;
-    snake.holeDuration /= 1.5;
+  constructor(spriteX, spriteY) {
+    super(spriteX, spriteY);
   }
 }
 
 class Malus extends Bonus {
+  constructor(spriteX, spriteY) {
+    super(spriteX, spriteY);
+  }
+}
+
+class SizeUpSelfBonus extends SelfBonus {
   constructor() {
-    super();
-    this.spriteX = 0;
-    this.spriteY = 2;
+    super(0, 3);
+  }
+  effect = sizeUp;
+  reverseEffect = sizeDown;
+}
+
+class SpeedUpSelfBonus extends SelfBonus {
+  constructor() {
+    super(1, 3);
   }
 
-  effect(snake) {
-    snake.radius *= 2;
-    snake.holeDuration *= 2;
-  }
+  effect = speedUp;
+  reverseEffect = speedDown;
+}
 
-  reverseEffect(snake) {
-    snake.radius /= 2;
-    snake.holeDuration /= 2;
+class SizeUpMalus extends Malus {
+  constructor() {
+    super(0, 2);
   }
+  effect = sizeUp;
+  reverseEffect = sizeDown;
+}
+
+class SpeedUpMalus extends Malus {
+  constructor() {
+    super(1, 2);
+  }
+  effect = speedUp;
+  reverseEffect = speedDown;
+}
+
+// LIST OF EFFECTS
+
+const sizeCoeff = 2;
+const sizeHoleCoeff = 1.5;
+
+function sizeUp(snake) {
+  snake.radius *= sizeCoeff;
+  snake.holeDuration *= sizeHoleCoeff;
+}
+
+function sizeDown(snake) {
+  snake.radius /= sizeCoeff;
+  snake.holeDuration /= sizeHoleCoeff;
+}
+
+const speedCoeff = 2;
+const speedHoleCoeff = 1.5;
+
+function speedUp(snake) {
+  snake.velocity *= speedCoeff;
+  snake.holeDuration *= speedHoleCoeff;
+}
+
+function speedDown(snake) {
+  snake.velocity /= speedCoeff;
+  snake.holeDuration /= speedHoleCoeff;
 }

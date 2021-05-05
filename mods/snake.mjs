@@ -15,7 +15,7 @@ export default class Snake {
   setSnake() {
     this.pos = {
       x: 100 + 700 * Math.random(), //NEED TO REMOVE HARD CODING GLOBAL VAR ?
-      y: 100 + 700 * Math.random(),
+      y: 100 + 700 * Math.random(), //DOT REFACTORING
     };
     this.radius = 3;
     this.velocity = 1.5;
